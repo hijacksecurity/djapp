@@ -18,34 +18,55 @@ stages:
         steps:
           - checkout: self
 
-          - script: |
-              echo "Setting up AWS CLI..."
-              aws configure set aws_access_key_id $(AWS_ACCESS_KEY_ID)
-              aws configure set aws_secret_access_key $(AWS_SECRET_ACCESS_KEY)
-              aws configure set default.region $(AWS_REGION)
-              aws sts get-caller-identity  # Verify credentials
+          - task: Bash@3
+            inputs:
+              targetType: 'inline'
+              script: |
+                echo "Setting up AWS CLI..."
+                echo "AWS Access Key ID: ${AWS_ACCESS_KEY_ID}"
+                echo "AWS Secret Access Key: ${AWS_SECRET_ACCESS_KEY}"
+                echo "AWS Region: ${AWS_REGION}"
+                aws configure set aws_access_key_id ${AWS_ACCESS_KEY_ID}
+                aws configure set aws_secret_access_key ${AWS_SECRET_ACCESS_KEY}
+                aws configure set default.region ${AWS_REGION}
+                aws sts get-caller-identity  # Verify credentials
             displayName: 'AWS CLI Setup and Verification'
 
-          - script: |
-              echo "Logging in to Amazon ECR..."
-              aws ecr get-login-password --region $(AWS_REGION) | docker login --username AWS --password-stdin $(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com
+          - task: Bash@3
+            inputs:
+              targetType: 'inline'
+              script: |
+                echo "Logging in to Amazon ECR..."
+                aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com
             displayName: 'Login to AWS ECR'
 
-          - script: |
-              echo "Building the Docker image..."
-              docker build -t $(ECR_REPOSITORY):$(IMAGE_TAG) .
+          - task: Bash@3
+            inputs:
+              targetType: 'inline'
+              script: |
+                echo "Building the Docker image..."
+                docker build -t ${ECR_REPOSITORY}:${IMAGE_TAG} .
             displayName: 'Build Docker Image'
 
-          - script: |
-              echo "Tagging the Docker image..."
-              docker tag $(ECR_REPOSITORY):$(IMAGE_TAG) $(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com/$(ECR_REPOSITORY):$(IMAGE_TAG)
+          - task: Bash@3
+            inputs:
+              targetType: 'inline'
+              script: |
+                echo "Tagging the Docker image..."
+                docker tag ${ECR_REPOSITORY}:${IMAGE_TAG} ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPOSITORY}:${IMAGE_TAG}
             displayName: 'Tag Docker Image'
 
-          - script: |
-              echo "Pushing the Docker image to AWS ECR..."
-              docker push $(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com/$(ECR_REPOSITORY):$(IMAGE_TAG)
+          - task: Bash@3
+            inputs:
+              targetType: 'inline'
+              script: |
+                echo "Pushing the Docker image to AWS ECR..."
+                docker push ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPOSITORY}:${IMAGE_TAG}
             displayName: 'Push Docker Image to ECR'
 
-          - script: |
-              echo "Docker image successfully pushed to AWS ECR!"
+          - task: Bash@3
+            inputs:
+              targetType: 'inline'
+              script: |
+                echo "Docker image successfully pushed to AWS ECR!"
             displayName: 'Success Message'
