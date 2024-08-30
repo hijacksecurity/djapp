@@ -45,7 +45,7 @@ stages:
               targetType: 'inline'
               script: |
                 echo "Building the Docker image..."
-                docker build -t $(ECR_REPOSITORY):$(Build.BuildId) .
+                docker build -t djapp:$(Build.BuildId) .
 
           - task: Bash@3
             displayName: 'Tag Docker Image'
@@ -53,7 +53,7 @@ stages:
               targetType: 'inline'
               script: |
                 echo "Tagging the Docker image..."
-                docker tag $(ECR_REPOSITORY):$(Build.BuildId) $(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com/$(ECR_REPOSITORY):$(Build.BuildId)
+                docker tag djapp:$(Build.BuildId) $(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com/$(ECR_REPOSITORY):djapp-$(Build.BuildId)
 
           - task: Bash@3
             displayName: 'Push Docker Image to ECR'
@@ -61,7 +61,7 @@ stages:
               targetType: 'inline'
               script: |
                 echo "Pushing the Docker image to AWS ECR..."
-                docker push $(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com/$(ECR_REPOSITORY):$(Build.BuildId)
+                docker push $(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com/$(ECR_REPOSITORY):djapp-$(Build.BuildId)
 
           - task: Bash@3
             displayName: 'Success Message'
