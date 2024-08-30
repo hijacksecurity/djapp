@@ -18,11 +18,6 @@ stages:
         steps:
           - checkout: self  # Checkout the source code
 
-          - script: |
-              VERSION=$(cat VERSION)
-              echo "##vso[task.setvariable variable=VERSION]$VERSION"
-            displayName: 'Read Version'
-
           - task: Bash@3
             displayName: 'AWS CLI Setup and Verification'
             inputs:
@@ -50,7 +45,7 @@ stages:
               targetType: 'inline'
               script: |
                 echo "Building the Docker image..."
-                docker build -t djapp:$(VERSION) .
+                docker build -t djapp:$(Build.BuildId) .
 
           - task: Bash@3
             displayName: 'Tag Docker Image'
@@ -58,7 +53,7 @@ stages:
               targetType: 'inline'
               script: |
                 echo "Tagging the Docker image..."
-                docker tag djapp:$(VERSION) $(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com/$(ECR_REPOSITORY):djapp-$(VERSION)
+                docker tag djapp:$(Build.BuildId) $(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com/$(ECR_REPOSITORY):djapp-$(Build.BuildId)
 
           - task: Bash@3
             displayName: 'Push Docker Image to ECR'
@@ -66,11 +61,11 @@ stages:
               targetType: 'inline'
               script: |
                 echo "Pushing the Docker image to AWS ECR..."
-                docker push $(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com/$(ECR_REPOSITORY):djapp-$(VERSION)
+                docker push $(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com/$(ECR_REPOSITORY):djapp-$(Build.BuildId)
 
           - task: Bash@3
             displayName: 'Success Message'
             inputs:
               targetType: 'inline'
               script: |
-                echo "Docker image successfully pushed to AWS ECR with version $(VERSION)!"
+                echo "Docker image successfully pushed to AWS ECR!"
