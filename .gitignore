@@ -1,0 +1,183 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Virtual environment directories
+.venv/
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# Django specific files
+*.log
+*.pot
+*.pyc
+*.pyo
+*.sqlite3
+db.sqlite3
+
+# If your Django project uses SQLite as the default database
+*.db
+
+# Django migrations (these can be generated and should not be shared)
+**/migrations/*
+
+# Django cache files
+**/cache/*
+
+# Django local settings
+local_settings.py
+
+# Media and static files
+media/
+staticfiles/
+static/
+
+# If using Django with Celery
+celerybeat-schedule
+celerybeat.pid
+
+# Dotenv environment variable files
+.env
+.env.*
+
+# Secrets and keys
+secret_key.txt
+secrets.json
+
+# Ignore MacOS system files
+.DS_Store
+
+# Ignore Windows system files
+Thumbs.db
+
+# Ignore IDE specific settings (PyCharm, VSCode, etc.)
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# Ignore Python egg files
+*.egg
+*.egg-info/
+dist/
+build/
+eggs/
+parts/
+var/
+*.manifest
+*.spec
+
+# Ignore pipenv files
+Pipfile
+Pipfile.lock
+
+# Ignore coverage files
+htmlcov/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+
+# Ignore Jupyter Notebook checkpoints
+.ipynb_checkpoints
+
+# Ignore pytest cache files
+.pytest_cache/
+
+# Ignore mypy type check cache
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Ignore Pyre type check
+.pyre/
+
+# Ignore Pycharm-specific files
+.idea/
+
+# Ignore VS Code specific files
+.vscode/
+
+# Ignore Docker specific files
+docker-compose.override.yml
+
+# Ignore Sentry configuration files
+.sentryclirc
+
+# Ignore specific file extensions
+*.swp
+*.swo
+
+# Ignore dependency directories
+node_modules/
+bower_components/
+
+# Ignore temporary files
+*.temp
+*.tmp
+*.bak
+*.swp
+*.swo
+*~
+
+# Ignore local development environment files
+*.local
+*.bak
+*.old
+
+# Ignore gunicorn logs
+gunicorn.error.log
+gunicorn.access.log
+
+# Ignore pip logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Ignore python-decouple environment config files
+.env.local
+.env.production
+.env.staging
+
+# Ignore pytest files
+.pytest_cache/
+
+# Ignore profiler results
+.prof
+
+# Ignore coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+
+# Ignore CI/CD configuration files
+.circleci/
+.github/
+.gitlab-ci.yml
+
+# Ignore Terraform state files (if using Terraform)
+*.tfstate
+*.tfstate.backup
+
+# Ignore Flask development server logs
+flask.log
+instance/
+
+# Ignore OpenAI API keys (if using OpenAI services)
+openai_api_key.json
