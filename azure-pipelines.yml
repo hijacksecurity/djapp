@@ -13,10 +13,16 @@ stages:
           vmImage: 'ubuntu-latest'
 
         variables:
-          - group: 'AWS_ECR_Credentials'  # This includes AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION, AWS_ACCOUNT_ID, ECR_REPOSITORY
+          - group: 'AWS_ECR_Credentials'  # Ensure this group exists and is correctly populated
           - name: IMAGE_TAG
-            value: $(Build.BuildId)  # Using Build ID as the Docker image tag
-        
+            value: $(Build.BuildId)
+          - name: AWS_ACCESS_KEY_ID
+            value: $(AWS_ACCESS_KEY_ID)  # Directly reference from variable group
+          - name: AWS_SECRET_ACCESS_KEY
+            value: $(AWS_SECRET_ACCESS_KEY)  # Directly reference from variable group
+          - name: AWS_REGION
+            value: $(AWS_REGION)  # Directly reference from variable group
+
         steps:
           - checkout: self
 
@@ -33,42 +39,3 @@ stages:
                 aws configure set default.region $AWS_REGION
                 aws sts get-caller-identity  # Verify credentials
             displayName: 'AWS CLI Setup and Verification'
-
-          - task: Bash@3
-            inputs:
-              targetType: 'inline'
-              script: |
-                echo "Logging in to Amazon ECR..."
-                aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
-            displayName: 'Login to AWS ECR'
-
-          - task: Bash@3
-            inputs:
-              targetType: 'inline'
-              script: |
-                echo "Building the Docker image..."
-                docker build -t $ECR_REPOSITORY:$IMAGE_TAG .
-            displayName: 'Build Docker Image'
-
-          - task: Bash@3
-            inputs:
-              targetType: 'inline'
-              script: |
-                echo "Tagging the Docker image..."
-                docker tag $ECR_REPOSITORY:$IMAGE_TAG $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY:$IMAGE_TAG
-            displayName: 'Tag Docker Image'
-
-          - task: Bash@3
-            inputs:
-              targetType: 'inline'
-              script: |
-                echo "Pushing the Docker image to AWS ECR..."
-                docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY:$IMAGE_TAG
-            displayName: 'Push Docker Image to ECR'
-
-          - task: Bash@3
-            inputs:
-              targetType: 'inline'
-              script: |
-                echo "Docker image successfully pushed to AWS ECR!"
-            displayName: 'Success Message'
