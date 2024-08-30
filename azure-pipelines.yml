@@ -4,7 +4,7 @@ trigger:
       - main
 
 variables:
-  - group: AWS_ECR_Credentials  # Link the variable group
+  - group: AWS_ECR_Credentials  # Link to variable group containing AWS credentials
 
 stages:
   - stage: BuildAndPush
@@ -16,64 +16,56 @@ stages:
           vmImage: 'ubuntu-latest'
 
         steps:
-          - checkout: self
+          - checkout: self  # Checkout the source code
 
           - task: Bash@3
+            displayName: 'AWS CLI Setup and Verification'
             inputs:
               targetType: 'inline'
               script: |
-                echo "Checking AWS environment variables..."
-                echo "AWS_ACCESS_KEY_ID: $(AWS_ACCESS_KEY_ID)"
-                echo "AWS_SECRET_ACCESS_KEY: $(AWS_SECRET_ACCESS_KEY)"
-                echo "AWS_REGION: $(AWS_REGION)"
-
-                if [ -z "$(AWS_ACCESS_KEY_ID)" ] || [ -z "$(AWS_SECRET_ACCESS_KEY)" ] || [ -z "$(AWS_REGION)" ]; then
-                  echo "One or more AWS environment variables are not set. Exiting..."
-                  exit 1
-                fi
-
                 echo "Setting up AWS CLI..."
                 aws configure set aws_access_key_id $(AWS_ACCESS_KEY_ID)
                 aws configure set aws_secret_access_key $(AWS_SECRET_ACCESS_KEY)
                 aws configure set default.region $(AWS_REGION)
-                aws sts get-caller-identity  # Verify credentials
-            displayName: 'AWS CLI Setup and Verification'
+                
+                echo "Verifying AWS credentials..."
+                aws sts get-caller-identity  # Validate credentials setup
 
           - task: Bash@3
+            displayName: 'Login to AWS ECR'
             inputs:
               targetType: 'inline'
               script: |
                 echo "Logging in to Amazon ECR..."
                 aws ecr get-login-password --region $(AWS_REGION) | docker login --username AWS --password-stdin $(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com
-            displayName: 'Login to AWS ECR'
 
           - task: Bash@3
+            displayName: 'Build Docker Image'
             inputs:
               targetType: 'inline'
               script: |
                 echo "Building the Docker image..."
                 docker build -t $(ECR_REPOSITORY):$(Build.BuildId) .
-            displayName: 'Build Docker Image'
 
           - task: Bash@3
+            displayName: 'Tag Docker Image'
             inputs:
               targetType: 'inline'
               script: |
                 echo "Tagging the Docker image..."
                 docker tag $(ECR_REPOSITORY):$(Build.BuildId) $(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com/$(ECR_REPOSITORY):$(Build.BuildId)
-            displayName: 'Tag Docker Image'
 
           - task: Bash@3
+            displayName: 'Push Docker Image to ECR'
             inputs:
               targetType: 'inline'
               script: |
                 echo "Pushing the Docker image to AWS ECR..."
                 docker push $(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com/$(ECR_REPOSITORY):$(Build.BuildId)
-            displayName: 'Push Docker Image to ECR'
 
           - task: Bash@3
+            displayName: 'Success Message'
             inputs:
               targetType: 'inline'
               script: |
                 echo "Docker image successfully pushed to AWS ECR!"
-            displayName: 'Success Message'
