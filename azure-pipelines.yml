@@ -197,8 +197,8 @@ stages:
               targetType: 'inline'
               script: |
                 echo "Building the Docker image with PROD environment configuration..."
-                docker build --build-arg DJANGO_SETTINGS_MODULE_ARG=djapp.settings.prod -t $(ECR_REPOSITORY):${{ parameters.IMAGE_TAG }}-prod .
-
+                docker build --build-arg DJANGO_SETTINGS_MODULE_ARG=djapp.settings.test -t $(ECR_REPOSITORY):${{ parameters.IMAGE_TAG }}-prod . 
+                
           - task: Bash@3
             displayName: 'Tag PROD Docker Image'
             inputs:
