@@ -51,7 +51,7 @@ stages:
               targetType: 'inline'
               script: |
                 echo "Building the Docker image..."
-                docker build -t $(ECR_REPOSITORY):$(IMAGE_TAG) .
+                docker build -t $(ECR_REPOSITORY):${{ parameters.IMAGE_TAG }} .
 
           - task: Bash@3
             displayName: 'Tag Docker Image'
@@ -59,7 +59,7 @@ stages:
               targetType: 'inline'
               script: |
                 echo "Tagging the Docker image..."
-                docker tag $(ECR_REPOSITORY):$(IMAGE_TAG) $(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com/$(ECR_REPOSITORY):$(IMAGE_TAG)
+                docker tag $(ECR_REPOSITORY):${{ parameters.IMAGE_TAG }} $(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com/$(ECR_REPOSITORY):${{ parameters.IMAGE_TAG }}
 
           - task: Bash@3
             displayName: 'Push Docker Image to ECR'
@@ -67,7 +67,7 @@ stages:
               targetType: 'inline'
               script: |
                 echo "Pushing the Docker image to AWS ECR..."
-                docker push $(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com/$(ECR_REPOSITORY):$(IMAGE_TAG)
+                docker push $(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com/$(ECR_REPOSITORY):${{ parameters.IMAGE_TAG }}
 
           - task: Bash@3
             displayName: 'Success Message'
