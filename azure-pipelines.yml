@@ -7,7 +7,7 @@ parameters:
   - name: IMAGE_TAG
     displayName: 'Image Tag'
     type: string
-    default: '1.0.0'
+    default: '1.0.0.$(Build.BuildId)'
 
 variables:
   - group: AWS_ECR_Credentials  # Link to variable group containing AWS credentials
