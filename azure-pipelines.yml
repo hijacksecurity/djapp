@@ -3,6 +3,12 @@ trigger:
     include:
       - main
 
+parameters:
+  - name: IMAGE_TAG
+    displayName: 'Image Tag'
+    type: string
+    default: '1.0.0'
+
 variables:
   - group: AWS_ECR_Credentials  # Link to variable group containing AWS credentials
 
@@ -45,7 +51,7 @@ stages:
               targetType: 'inline'
               script: |
                 echo "Building the Docker image..."
-                docker build -t djapp:$(Build.BuildId) .
+                docker build -t $(ECR_IMAGE_NAME):$(IMAGE_TAG) .
 
           - task: Bash@3
             displayName: 'Tag Docker Image'
@@ -53,7 +59,7 @@ stages:
               targetType: 'inline'
               script: |
                 echo "Tagging the Docker image..."
-                docker tag djapp:$(Build.BuildId) $(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com/$(ECR_REPOSITORY):djapp-$(Build.BuildId)
+                docker tag $(ECR_IMAGE_NAME):$(IMAGE_TAG) $(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com/$(ECR_REPOSITORY):$(IMAGE_TAG)
 
           - task: Bash@3
             displayName: 'Push Docker Image to ECR'
@@ -61,7 +67,7 @@ stages:
               targetType: 'inline'
               script: |
                 echo "Pushing the Docker image to AWS ECR..."
-                docker push $(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com/$(ECR_REPOSITORY):djapp-$(Build.BuildId)
+                docker push $(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com/$(ECR_REPOSITORY):$(IMAGE_TAG)
 
           - task: Bash@3
             displayName: 'Success Message'
