@@ -1,26 +1,30 @@
-from .base import *
 import os
+from .base import *
 
 DEBUG = False
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['*']  # Update this for production use
 
-# Production-specific database configuration
+def get_env_variable(var_name, default_value):
+    """ Get the environment variable or return the default value if it's empty or not set. """
+    value = os.getenv(var_name, default_value)
+    return value if value else default_value
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('DB_NAME', 'mydb'),
-        'USER': os.getenv('DB_USER', 'myuser'),
-        'PASSWORD': os.getenv('DB_PASSWORD', 'mypassword'),
-        'HOST': os.getenv('DB_HOST', 'db'),
-        'PORT': os.getenv('DB_PORT', '5432'),
+        'NAME': get_env_variable('DB_NAME', 'mydb'),
+        'USER': get_env_variable('DB_USER', 'myuser'),
+        'PASSWORD': get_env_variable('DB_PASSWORD', 'mypassword'),
+        'HOST': get_env_variable('DB_HOST', 'db'),
+        'PORT': get_env_variable('DB_PORT', '5432'),
     }
 }
 
 # Security settings
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
-SECURE_SSL_REDIRECT = False
+SECURE_SSL_REDIRECT = False  # Set to True if using HTTPS in production
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 X_FRAME_OPTIONS = 'DENY'

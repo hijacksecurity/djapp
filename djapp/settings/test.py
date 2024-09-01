@@ -4,8 +4,9 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
-# Testing-specific database configuration
-DATABASES['default'] = {
-    'ENGINE': 'django.db.backends.sqlite3',
-    'NAME': BASE_DIR / 'test_db.sqlite3',
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': os.path.join(BASE_DIR, 'data', 'test.sqlite3'),  # Move test DB here
+    }
 }
