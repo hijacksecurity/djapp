@@ -52,6 +52,14 @@ stages:
               script: |
                 echo "Building the Docker image with TEST environment configuration..."
                 docker build --build-arg DJANGO_SETTINGS_MODULE_ARG=djapp.settings.test -t $(ECR_REPOSITORY):${{ parameters.IMAGE_TAG }}-test .
+          - task: Bash@3
+            displayName: 'Run Migrations for TEST Environment'
+            inputs:
+              targetType: 'inline'
+              script: |
+                echo "Running migrations for TEST environment..."
+                docker-compose run web python manage.py makemigrations
+                docker-compose run web python manage.py migrate
 
           - task: Bash@3
             displayName: 'Tag TEST Docker Image'
@@ -204,7 +212,16 @@ stages:
                             --build-arg DB_HOST=$(DB_HOST) \
                             --build-arg DB_PORT=$(DB_PORT) \
                             -t $(ECR_REPOSITORY):${{ parameters.IMAGE_TAG }}-prod .
-                  
+
+          - task: Bash@3
+            displayName: 'Run Migrations for PROD Environment'
+            inputs:
+              targetType: 'inline'
+              script: |
+                echo "Running migrations for PROD environment..."
+                docker-compose run web python manage.py makemigrations
+                docker-compose run web python manage.py migrate
+                
           - task: Bash@3
             displayName: 'Tag PROD Docker Image'
             inputs:
