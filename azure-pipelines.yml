@@ -102,6 +102,30 @@ stages:
                 aws sts get-caller-identity  # Validate credentials setup
 
           - task: Bash@3
+            displayName: 'Register New Task Definition Revision'
+            inputs:
+              targetType: 'inline'
+              script: |
+                echo "Registering a new task definition revision..."
+                aws ecs register-task-definition \
+                  --family $(ECS_TASK)-TEST \
+                  --container-definitions "[
+                      {
+                        \"name\": \"djapp-container\",
+                        \"image\": \"$(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com/$(ECR_REPOSITORY):${{ parameters.IMAGE_TAG }}-test\",
+                        \"cpu\": 1024,
+                        \"memory\": 2048,
+                        \"essential\": true,
+                        \"portMappings\": [
+                          {
+                            \"containerPort\": 8000,
+                            \"hostPort\": 8000
+                          }
+                        ]
+                      }
+                    ]"
+
+          - task: Bash@3
             displayName: 'Update TEST ECS Service to Use New Image'
             inputs:
               targetType: 'inline'
@@ -110,7 +134,7 @@ stages:
                 aws ecs update-service --cluster $(ECS_CLUSTER)-TEST \
                 --service $(ECS_SERVICE)-TEST \
                 --force-new-deployment \
-                --task-definition $(ECR_REPOSITORY)-test:$(Build.BuildId)
+                --task-definition $(ECS_TASK)-TEST
 
           - task: Bash@3
             displayName: 'Success Message'
