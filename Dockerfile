@@ -19,6 +19,9 @@ RUN pip install --upgrade pip && pip install -r requirements.txt
 # Copy project files
 COPY . /app/
 
+# Copy the entrypoint script
+COPY entrypoint.sh /app/entrypoint.sh
+
 # Set environment variables for Django
 # These should be passed during runtime via docker-compose or manually during the docker run command
 ENV DB_NAME=${DB_NAME}
@@ -29,6 +32,9 @@ ENV DB_PORT=${DB_PORT}
 
 # Expose port 8000
 EXPOSE 8000
+
+# Set the entry point to the entrypoint script
+ENTRYPOINT ["/app/entrypoint.sh"]
 
 # Command to run the application
 CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
