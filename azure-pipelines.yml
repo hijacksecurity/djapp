@@ -197,8 +197,14 @@ stages:
               targetType: 'inline'
               script: |
                 echo "Building the Docker image with PROD environment configuration..."
-                docker build --build-arg DJANGO_SETTINGS_MODULE_ARG=djapp.settings.test -t $(ECR_REPOSITORY):${{ parameters.IMAGE_TAG }}-prod . 
-                
+                docker build --build-arg DJANGO_SETTINGS_MODULE_ARG=djapp.settings.prod \
+                            --build-arg DB_NAME=$(DB_NAME) \
+                            --build-arg DB_USER=$(DB_USER) \
+                            --build-arg DB_PASSWORD=$(DB_PASSWORD) \
+                            --build-arg DB_HOST=$(DB_HOST) \
+                            --build-arg DB_PORT=$(DB_PORT) \
+                            -t $(ECR_REPOSITORY):${{ parameters.IMAGE_TAG }}-prod .
+                  
           - task: Bash@3
             displayName: 'Tag PROD Docker Image'
             inputs:
