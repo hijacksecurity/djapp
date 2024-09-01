@@ -31,5 +31,6 @@ ENV DB_PORT=${DB_PORT}
 EXPOSE 8000
 
 # Command to run the application
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+#CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
 #CMD ["gunicorn", "--bind", "0.0.0.0:8000", "djapp.wsgi:application"]
+CMD python manage.py makemigrations && python manage.py migrate && python manage.py runserver 0.0.0.0:8000
