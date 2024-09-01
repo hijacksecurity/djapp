@@ -51,7 +51,7 @@ stages:
               targetType: 'inline'
               script: |
                 echo "Building the Docker image with test environment configuration..."
-                docker build --build-arg DJANGO_SETTINGS_MODULE=djapp.settings.test -t $(ECR_REPOSITORY):${{ parameters.IMAGE_TAG }}-test .
+                docker build --build-arg DJANGO_SETTINGS_MODULE_ARG=djapp.settings.test -t $(ECR_REPOSITORY):${{ parameters.IMAGE_TAG }}-test .
 
           - task: Bash@3
             displayName: 'Tag Docker Image'
