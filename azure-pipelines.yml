@@ -13,11 +13,11 @@ variables:
   - group: AWS_ECR_Credentials  # Link to variable group containing AWS credentials
 
 stages:
-  - stage: BuildAndPush
-    displayName: 'Build and Push TEST Docker Image to AWS ECR'
+  - stage: BuildAndDeployToTEST
+    displayName: 'Build and Deploy to TEST Environment'
     jobs:
-      - job: Build
-        displayName: 'Build and Push Job'
+      - job: BuildAndPushTEST
+        displayName: 'Build and Push TEST Docker Image to AWS ECR'
         pool:
           vmImage: 'ubuntu-latest'
 
@@ -50,7 +50,7 @@ stages:
             inputs:
               targetType: 'inline'
               script: |
-                echo "Building the Docker image with test environment configuration..."
+                echo "Building the Docker image with TEST environment configuration..."
                 docker build --build-arg DJANGO_SETTINGS_MODULE_ARG=djapp.settings.test -t $(ECR_REPOSITORY):${{ parameters.IMAGE_TAG }}-test .
 
           - task: Bash@3
@@ -62,29 +62,19 @@ stages:
                 docker tag $(ECR_REPOSITORY):${{ parameters.IMAGE_TAG }}-test $(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com/$(ECR_REPOSITORY):${{ parameters.IMAGE_TAG }}-test
 
           - task: Bash@3
-            displayName: 'Push Docker Image to ECR'
+            displayName: 'Push TEST Docker Image to ECR'
             inputs:
               targetType: 'inline'
               script: |
                 echo "Pushing the Docker image to AWS ECR..."
                 docker push $(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com/$(ECR_REPOSITORY):${{ parameters.IMAGE_TAG }}-test
 
-          - task: Bash@3
-            displayName: 'Success Message'
-            inputs:
-              targetType: 'inline'
-              script: |
-                echo "Docker image successfully pushed to AWS ECR!"
-
-  - stage: DeployToTEST
-    displayName: 'Deploy to TEST Environment'
-    dependsOn: BuildAndPush
-    jobs:
-      - job: Deploy
+      - job: DeployToTEST
         displayName: 'Deploy to ECS TEST'
         pool:
           vmImage: 'ubuntu-latest'
-        
+        dependsOn: BuildAndPushTEST
+
         steps:
           - checkout: none
 
@@ -102,11 +92,11 @@ stages:
                 aws sts get-caller-identity  # Validate credentials setup
 
           - task: Bash@3
-            displayName: 'Register New Task Definition Revision'
+            displayName: 'Register New Task Definition Revision for TEST'
             inputs:
               targetType: 'inline'
               script: |
-                echo "Registering a new task definition revision..."
+                echo "Registering a new task definition revision for TEST..."
                 aws ecs register-task-definition \
                   --family $(ECS_TASK)-TEST \
                   --network-mode awsvpc \
@@ -144,19 +134,158 @@ stages:
                 --task-definition $(ECS_TASK)-TEST
 
           - task: Bash@3
-            displayName: 'Success Message'
-            inputs:
-              targetType: 'inline'
-              script: |
-                echo "Deployment to TEST environment successful!"
-          
-          - task: Bash@3
             displayName: 'Get Public IP of the TEST ECS Task'
             inputs:
               targetType: 'inline'
               script: |
-                echo "Retrieving Public IP of the ECS Task..."
+                echo "Retrieving Public IP of the TEST ECS Task..."
                 TASK_ID=$(aws ecs list-tasks --cluster $(ECS_CLUSTER)-TEST --service-name $(ECS_SERVICE)-TEST --query 'taskArns[0]' --output text)
                 ENI_ID=$(aws ecs describe-tasks --cluster $(ECS_CLUSTER)-TEST --tasks $TASK_ID --query 'tasks[0].attachments[0].details[?name==`networkInterfaceId`].value' --output text)
                 PUBLIC_IP=$(aws ec2 describe-network-interfaces --network-interface-ids $ENI_ID --query 'NetworkInterfaces[0].Association.PublicIp' --output text)
-                echo "External link: http://$PUBLIC_IP:8000"
+                echo "External link for TEST environment: http://$PUBLIC_IP:8000"
+
+  - stage: ApprovalGate
+    displayName: 'Approval Gate Before PROD'
+    dependsOn: BuildAndDeployToTEST
+    jobs:
+      - job: Approval
+        displayName: 'Approval Before PROD Deployment'
+        pool: server
+        steps:
+          - task: ManualValidation@0
+            inputs:
+              instructions: 'Approve to proceed with PROD build and deployment.'
+              onTimeout: 'reject'
+              timeoutInMinutes: 15  # 15 minutes
+
+  - stage: BuildAndDeployToPROD
+    displayName: 'Build and Deploy to PROD Environment'
+    dependsOn: ApprovalGate
+    jobs:
+      - job: BuildAndPushPROD
+        displayName: 'Build and Push PROD Docker Image to AWS ECR'
+        pool:
+          vmImage: 'ubuntu-latest'
+
+        steps:
+          - checkout: self  # Checkout the source code
+
+          - task: Bash@3
+            displayName: 'AWS CLI Setup and Verification'
+            inputs:
+              targetType: 'inline'
+              script: |
+                echo "Setting up AWS CLI..."
+                aws configure set aws_access_key_id $(AWS_ACCESS_KEY_ID)
+                aws configure set aws_secret_access_key $(AWS_SECRET_ACCESS_KEY)
+                aws configure set default.region $(AWS_REGION)
+                
+                echo "Verifying AWS credentials..."
+                aws sts get-caller-identity  # Validate credentials setup
+
+          - task: Bash@3
+            displayName: 'Login to AWS ECR'
+            inputs:
+              targetType: 'inline'
+              script: |
+                echo "Logging in to Amazon ECR..."
+                aws ecr get-login-password --region $(AWS_REGION) | docker login --username AWS --password-stdin $(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com
+
+          - task: Bash@3
+            displayName: 'Build PROD Docker Image'
+            inputs:
+              targetType: 'inline'
+              script: |
+                echo "Building the Docker image with PROD environment configuration..."
+                docker build --build-arg DJANGO_SETTINGS_MODULE_ARG=djapp.settings.prod -t $(ECR_REPOSITORY):${{ parameters.IMAGE_TAG }}-prod .
+
+          - task: Bash@3
+            displayName: 'Tag PROD Docker Image'
+            inputs:
+              targetType: 'inline'
+              script: |
+                echo "Tagging the Docker image..."
+                docker tag $(ECR_REPOSITORY):${{ parameters.IMAGE_TAG }}-prod $(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com/$(ECR_REPOSITORY):${{ parameters.IMAGE_TAG }}-prod
+
+          - task: Bash@3
+            displayName: 'Push PROD Docker Image to ECR'
+            inputs:
+              targetType: 'inline'
+              script: |
+                echo "Pushing the Docker image to AWS ECR..."
+                docker push $(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com/$(ECR_REPOSITORY):${{ parameters.IMAGE_TAG }}-prod
+
+      - job: DeployToPROD
+        displayName: 'Deploy to ECS PROD'
+        pool:
+          vmImage: 'ubuntu-latest'
+        dependsOn: BuildAndPushPROD
+
+        steps:
+          - checkout: none
+
+          - task: Bash@3
+            displayName: 'AWS CLI Setup'
+            inputs:
+              targetType: 'inline'
+              script: |
+                echo "Setting up AWS CLI..."
+                aws configure set aws_access_key_id $(AWS_ACCESS_KEY_ID)
+                aws configure set aws_secret_access_key $(AWS_SECRET_ACCESS_KEY)
+                aws configure set default.region $(AWS_REGION)
+                
+                echo "Verifying AWS credentials..."
+                aws sts get-caller-identity  # Validate credentials setup
+
+          - task: Bash@3
+            displayName: 'Register New Task Definition Revision for PROD'
+            inputs:
+              targetType: 'inline'
+              script: |
+                echo "Registering a new task definition revision for PROD..."
+                aws ecs register-task-definition \
+                  --family $(ECS_TASK)-PROD \
+                  --network-mode awsvpc \
+                  --container-definitions '[
+                      {
+                          "name": "djapp-container",
+                          "image": "$(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com/$(ECR_REPOSITORY):${{ parameters.IMAGE_TAG }}-prod",
+                          "cpu": 1024,
+                          "memory": 2048,
+                          "essential": true,
+                          "portMappings": [
+                              {
+                                  "containerPort": 8000,
+                                  "hostPort": 8000,
+                                  "protocol": "tcp"
+                              }
+                          ]
+                      }
+                  ]' \
+                  --requires-compatibilities "FARGATE" \
+                  --cpu "1024" \
+                  --memory "2048" \
+                  --execution-role-arn "arn:aws:iam::$(AWS_ACCOUNT_ID):role/ecsTaskExecutionRole" \
+                  --task-role-arn "arn:aws:iam::$(AWS_ACCOUNT_ID):role/ecsTaskExecutionRole"
+
+          - task: Bash@3
+            displayName: 'Update PROD ECS Service to Use New Image'
+            inputs:
+              targetType: 'inline'
+              script: |
+                echo "Updating ECS service to use the new Docker image..."
+                aws ecs update-service --cluster $(ECS_CLUSTER)-PROD \
+                --service $(ECS_SERVICE)-PROD \
+                --force-new-deployment \
+                --task-definition $(ECS_TASK)-PROD
+
+          - task: Bash@3
+            displayName: 'Get Public IP of the PROD ECS Task'
+            inputs:
+              targetType: 'inline'
+              script: |
+                echo "Retrieving Public IP of the PROD ECS Task..."
+                TASK_ID=$(aws ecs list-tasks --cluster $(ECS_CLUSTER)-PROD --service-name $(ECS_SERVICE)-PROD --query 'taskArns[0]' --output text)
+                ENI_ID=$(aws ecs describe-tasks --cluster $(ECS_CLUSTER)-PROD --tasks $TASK_ID --query 'tasks[0].attachments[0].details[?name==`networkInterfaceId`].value' --output text)
+                PUBLIC_IP=$(aws ec2 describe-network-interfaces --network-interface-ids $ENI_ID --query 'NetworkInterfaces[0].Association.PublicIp' --output text)
+                echo "External link for PROD environment: http://$PUBLIC_IP:8000"
