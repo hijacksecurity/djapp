@@ -14,7 +14,7 @@ variables:
 
 stages:
   - stage: BuildAndPush
-    displayName: 'Build and Push Docker Image to AWS ECR'
+    displayName: 'Build and Push TEST Docker Image to AWS ECR'
     jobs:
       - job: Build
         displayName: 'Build and Push Job'
@@ -46,7 +46,7 @@ stages:
                 aws ecr get-login-password --region $(AWS_REGION) | docker login --username AWS --password-stdin $(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com
 
           - task: Bash@3
-            displayName: 'Build Docker Image'
+            displayName: 'Build TEST Docker Image'
             inputs:
               targetType: 'inline'
               script: |
@@ -54,7 +54,7 @@ stages:
                 docker build --build-arg DJANGO_SETTINGS_MODULE_ARG=djapp.settings.test -t $(ECR_REPOSITORY):${{ parameters.IMAGE_TAG }}-test .
 
           - task: Bash@3
-            displayName: 'Tag Docker Image'
+            displayName: 'Tag TEST Docker Image'
             inputs:
               targetType: 'inline'
               script: |
@@ -75,3 +75,46 @@ stages:
               targetType: 'inline'
               script: |
                 echo "Docker image successfully pushed to AWS ECR!"
+
+  - stage: DeployToTEST
+    displayName: 'Deploy to TEST Environment'
+    dependsOn: BuildAndPush
+    jobs:
+      - job: Deploy
+        displayName: 'Deploy to ECS TEST'
+        pool:
+          vmImage: 'ubuntu-latest'
+        
+        steps:
+          - checkout: none
+
+          - task: Bash@3
+            displayName: 'AWS CLI Setup'
+            inputs:
+              targetType: 'inline'
+              script: |
+                echo "Setting up AWS CLI..."
+                aws configure set aws_access_key_id $(AWS_ACCESS_KEY_ID)
+                aws configure set aws_secret_access_key $(AWS_SECRET_ACCESS_KEY)
+                aws configure set default.region $(AWS_REGION)
+                
+                echo "Verifying AWS credentials..."
+                aws sts get-caller-identity  # Validate credentials setup
+
+          - task: Bash@3
+            displayName: 'Update TEST ECS Service to Use New Image'
+            inputs:
+              targetType: 'inline'
+              script: |
+                echo "Updating ECS service to use the new Docker image..."
+                aws ecs update-service --cluster $(ECS_CLUSTER)-TEST \
+                --service $(ECS_SERVICE)-TEST \
+                --force-new-deployment \
+                --task-definition $(ECR_REPOSITORY)-test:$(Build.BuildId)
+
+          - task: Bash@3
+            displayName: 'Success Message'
+            inputs:
+              targetType: 'inline'
+              script: |
+                echo "Deployment to TEST environment successful!"
