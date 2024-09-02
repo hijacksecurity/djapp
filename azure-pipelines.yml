@@ -126,7 +126,7 @@ stages:
                                   "awslogs-stream-prefix": "djapp",
                                   "awslogs-create-group": "true"
                               }
-                          },
+                          }
                       }
                   ]' \
                   --requires-compatibilities "FARGATE" \
