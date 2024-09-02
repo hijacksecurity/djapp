@@ -282,7 +282,7 @@ stages:
                           "logConfiguration": {
                               "logDriver": "awslogs",
                               "options": {
-                                  "awslogs-group": "/ecs/$(ECS_TASK)-PROD",
+                                  "awslogs-group": "/ecs/$(ECS_TASK)-TEST",
                                   "awslogs-region": "$(AWS_REGION)",
                                   "awslogs-stream-prefix": "djapp",
                                   "awslogs-create-group": "true"
