@@ -34,6 +34,7 @@ ENV DB_PORT=${DB_PORT}
 EXPOSE 8000
 
 # Set the entry point to the entrypoint script
+RUN chmod +x /app/entrypoint.sh
 ENTRYPOINT ["/app/entrypoint.sh"]
 
 # Command to run the application
