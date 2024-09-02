@@ -211,11 +211,11 @@ stages:
               script: |
                 echo "Building the Docker image with PROD environment configuration..."
                 docker build --build-arg DJANGO_SETTINGS_MODULE_ARG=djapp.settings.prod \
-                            --build-arg DB_NAME_ARG=$(DB_NAME) \
-                            --build-arg DB_USER_ARG=$(DB_USER) \
-                            --build-arg DB_PASSWORD_ARG=$(DB_PASSWORD) \
-                            --build-arg DB_HOST_ARG=$(DB_HOST) \
-                            --build-arg DB_PORT_ARG=$(DB_PORT) \
+                            --build-arg DB_NAME_ARG="$(DB_NAME)" \
+                            --build-arg DB_USER_ARG="$(DB_USER)" \
+                            --build-arg DB_PASSWORD_ARG="$(DB_PASSWORD)" \
+                            --build-arg DB_HOST_ARG="$(DB_HOST)" \
+                            --build-arg DB_PORT_ARG="$(DB_PORT)" \
                             -t $(ECR_REPOSITORY):${{ parameters.IMAGE_TAG }}-prod .
                 
           - task: Bash@3
