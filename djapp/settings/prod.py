@@ -18,6 +18,9 @@ DATABASES = {
         'PASSWORD': get_env_variable('DB_PASSWORD', 'mypassword'),
         'HOST': get_env_variable('DB_HOST', 'db'),
         'PORT': get_env_variable('DB_PORT', '5432'),
+        'OPTIONS': {
+            'sslmode': 'require',  # Enforce SSL connections
+        },
     }
 }
 
