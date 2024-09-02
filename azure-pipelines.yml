@@ -279,7 +279,7 @@ stages:
                                   "protocol": "tcp"
                               }
                           ],
-                          logConfiguration": {
+                          "logConfiguration": {
                               "logDriver": "awslogs",
                               "options": {
                                   "awslogs-group": "/ecs/$(ECS_TASK)-PROD",
