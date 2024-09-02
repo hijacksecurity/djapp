@@ -121,10 +121,10 @@ stages:
                           "logConfiguration": {
                               "logDriver": "awslogs",
                               "options": {
-                                  "awslogs-group": "/ecs/$(ECS_TASK)-TEST",  # Use the ECS task name for the log group
-                                  "awslogs-region": "$(AWS_REGION)",         # Use the specified AWS region
-                                  "awslogs-stream-prefix": "djapp",          # Prefix for log streams
-                                  "awslogs-create-group": "true"             # Automatically create the log group if it doesn't exist
+                                  "awslogs-group": "/ecs/$(ECS_TASK)-TEST",
+                                  "awslogs-region": "$(AWS_REGION)",
+                                  "awslogs-stream-prefix": "djapp",
+                                  "awslogs-create-group": "true"
                               }
                           },
                       }
