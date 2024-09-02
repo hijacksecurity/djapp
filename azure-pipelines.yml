@@ -102,38 +102,38 @@ stages:
               script: |
                 echo "Registering a new task definition revision for TEST..."
                 aws ecs register-task-definition \
-                --family $(ECS_TASK)-TEST \
-                --network-mode awsvpc \
-                --container-definitions '[
-                    {
-                        "name": "djapp-container",
-                        "image": "$(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com/$(ECR_REPOSITORY):${{ parameters.IMAGE_TAG }}-test",
-                        "cpu": 1024,
-                        "memory": 2048,
-                        "essential": true,
-                        "portMappings": [
-                            {
-                                "containerPort": 8000,
-                                "hostPort": 8000,
-                                "protocol": "tcp"
-                            }
-                        ],
-                        "logConfiguration": {
-                            "logDriver": "awslogs",
-                            "options": {
-                                "awslogs-group": "/ecs/$(ECS_TASK)-TEST",  # Use the ECS task name for the log group
-                                "awslogs-region": "$(AWS_REGION)",         # Use the specified AWS region
-                                "awslogs-stream-prefix": "djapp",          # Prefix for log streams
-                                "awslogs-create-group": "true"             # Automatically create the log group if it doesn't exist
-                            }
-                        }
-                    }
-                ]' \
-                --requires-compatibilities "FARGATE" \
-                --cpu "1024" \
-                --memory "2048" \
-                --execution-role-arn "arn:aws:iam::$(AWS_ACCOUNT_ID):role/ecsTaskExecutionRole" \
-                --task-role-arn "arn:aws:iam::$(AWS_ACCOUNT_ID):role/ecsTaskExecutionRole"
+                  --family $(ECS_TASK)-TEST \
+                  --network-mode awsvpc \
+                  --container-definitions '[
+                      {
+                          "name": "djapp-container",
+                          "image": "$(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com/$(ECR_REPOSITORY):${{ parameters.IMAGE_TAG }}-test",
+                          "cpu": 1024,
+                          "memory": 2048,
+                          "essential": true,
+                          "portMappings": [
+                              {
+                                  "containerPort": 8000,
+                                  "hostPort": 8000,
+                                  "protocol": "tcp"
+                              }
+                          ],
+                          "logConfiguration": {
+                              "logDriver": "awslogs",
+                              "options": {
+                                  "awslogs-group": "/ecs/$(ECS_TASK)-TEST",  # Use the ECS task name for the log group
+                                  "awslogs-region": "$(AWS_REGION)",         # Use the specified AWS region
+                                  "awslogs-stream-prefix": "djapp",          # Prefix for log streams
+                                  "awslogs-create-group": "true"             # Automatically create the log group if it doesn't exist
+                              }
+                          }
+                      }
+                  ]' \
+                  --requires-compatibilities "FARGATE" \
+                  --cpu "1024" \
+                  --memory "2048" \
+                  --execution-role-arn "arn:aws:iam::$(AWS_ACCOUNT_ID):role/ecsTaskExecutionRole" \
+                  --task-role-arn "arn:aws:iam::$(AWS_ACCOUNT_ID):role/ecsTaskExecutionRole"
 
           - task: Bash@3
             displayName: 'Update TEST ECS Service to Use New Image'
