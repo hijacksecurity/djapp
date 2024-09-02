@@ -1,7 +1,11 @@
 trigger:
   branches:
     include:
-      - main
+      - main  # This will trigger the pipeline only when changes are pushed to the main branch
+pr:
+  branches:
+    exclude:
+      - '*'  # This excludes all branches from triggering the pipeline on pull request submission
 
 parameters:
   - name: IMAGE_TAG
