@@ -36,7 +36,7 @@ commonly-accessible location such as AWS ECS (Elastic Container Service) while
 Docker image is stored in an image repository such as AWS ECR (Elastic Container Registry)
 
 TEST settings are base.py and test.py in the settings folder. Database is still a
-flat file but service is meant to be accessible wherever firewall allows, not
+flat file but web service is meant to be accessible wherever firewall allows, not
 limited by Django network control (ALLOWED_HOSTS = ['*']).
 
 If you would like to run the Docker container locally, build and run like this,
@@ -51,7 +51,7 @@ docker run -p 8000:8000 djapp
 PROD environment meant to represent closest architecture to actual production.
 The PROD settings are base.py + prod.py with specified remote database.
 Database connection variables are supplied via ```--build-arg``` which become 
-environmental variables inside Docker. 
+environmental variables inside Docker.
 
 Other Django configurations are changed to fit into the production model.
 Deployment goes to AWS ECR and ECS with production Postgresql database manually configured.
@@ -59,7 +59,7 @@ Deployment goes to AWS ECR and ECS with production Postgresql database manually 
 
 ## DevSecOps
 The whole Azure DevOps build and deployment is specified in azure-pipelines.yml YAML file.
-Variables are stored in Azure DevOps variables library. At least the following variables are stored under AWS_ECR_Credentials 
+Variables are stored in Azure DevOps variables library. At least the following variables are stored under ```AWS_ECR_Credentials``` 
 variable group:
 ```
 AWS_ACCESS_KEY_ID, AWS_ACCOUNT_ID, AWS_REGION, AWS_SECRET_ACCESS_KEY, DB_HOST, DB_NAME, 
