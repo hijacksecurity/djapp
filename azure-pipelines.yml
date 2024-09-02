@@ -278,7 +278,16 @@ stages:
                                   "hostPort": 8000,
                                   "protocol": "tcp"
                               }
-                          ]
+                          ],
+                          logConfiguration": {
+                              "logDriver": "awslogs",
+                              "options": {
+                                  "awslogs-group": "/ecs/$(ECS_TASK)-PROD",
+                                  "awslogs-region": "$(AWS_REGION)",
+                                  "awslogs-stream-prefix": "djapp",
+                                  "awslogs-create-group": "true"
+                              }
+                          }
                       }
                   ]' \
                   --requires-compatibilities "FARGATE" \
