@@ -126,7 +126,7 @@ stages:
                                   "awslogs-stream-prefix": "djapp",          # Prefix for log streams
                                   "awslogs-create-group": "true"             # Automatically create the log group if it doesn't exist
                               }
-                          }
+                          },
                       }
                   ]' \
                   --requires-compatibilities "FARGATE" \
