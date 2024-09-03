@@ -4,12 +4,14 @@ Its goal is to provide infrastructure for environment separation (DEV, TEST, PRO
 and implement DevOps best practices and easy of deployment (such as Docker, Docker-Compose, Azure DevOps, etc.).
 
 ## How to run
-Run the containerized infrastructure:<br>
-```docker-compose up```<br><br>
+Run the containerized infrastructure (entrypoint.sh needs to be executable):<br>
+```
+chmod +x entrypoint.sh
+docker-compose up
+```
 
 If you are testing the web app locally, run:<br>
 ```python manage.py runserver```<br><br>
-
 If you want to run just the web app container using Docker, build and run:<br>
 ```
 docker build -t djapp .
