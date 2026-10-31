@@ -1,18 +1,13 @@
 import os
 
-from django.http import HttpResponse
+from django.shortcuts import render
 from .models import TestModel
 
 
 def index(request):
-    items = TestModel.objects.all()
-
-    # Simple welcome message
-    response_html = "<h2>Welcome to the Test Page!</h2><p>This is <b>{}</b> environment.</p>".format(os.getenv("DJANGO_SETTINGS_MODULE"))
-
-    response_html += "<ul>"
-    for item in items:
-        response_html += f"<li>{item.name} - {item.description} - Age: {item.age}</li>"
-    response_html += "</ul>"
-
-    return HttpResponse(response_html)
+    # Render through the template engine so model values are auto-escaped (XSS).
+    context = {
+        "environment": os.getenv("DJANGO_SETTINGS_MODULE"),
+        "items": TestModel.objects.all(),
+    }
+    return render(request, "djapp/index.html", context)
