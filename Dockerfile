@@ -7,22 +7,12 @@ ENV PYTHONUNBUFFERED=1
 
 # Define build-time arguments
 ARG DJANGO_SETTINGS_MODULE_ARG=djapp.settings.dev
-ARG DB_NAME_ARG=""
-ARG DB_USER_ARG=""
-ARG DB_PASSWORD_ARG=""
-ARG DB_HOST_ARG=""
-ARG DB_PORT_ARG=""
 
 # Set environment variables for Django settings
 ENV DJANGO_SETTINGS_MODULE=$DJANGO_SETTINGS_MODULE_ARG
 
-# Conditionally set environment variables for database, only if provided
-# This pattern allows them to remain empty in non-production environments
-ENV DB_NAME=$DB_NAME_ARG
-ENV DB_USER=$DB_USER_ARG
-ENV DB_PASSWORD=$DB_PASSWORD_ARG
-ENV DB_HOST=$DB_HOST_ARG
-ENV DB_PORT=$DB_PORT_ARG
+# Database settings (DB_NAME, DB_USER, DB_PASSWORD, DB_HOST, DB_PORT) are
+# supplied at runtime by the container environment, never baked into the image.
 
 # Set work directory
 WORKDIR /app
@@ -42,6 +32,14 @@ EXPOSE 8000
 
 # Set the entry point to the entrypoint script
 RUN chmod +x /app/entrypoint.sh
+
+# Run as an unprivileged user
+RUN groupadd --system app && useradd --system --gid app --home-dir /app app \
+    && chown -R app:app /app
+USER app
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=20s --retries=3 \
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/', timeout=5)" || exit 1
 ENTRYPOINT ["/app/entrypoint.sh"]
 
 # Command to run the application
